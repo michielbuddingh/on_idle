@@ -1,0 +1,10 @@
+Short term:a
+      * Daemonize
+      * Comments, documentation
+      * Bugtesting
+      * Some if statements could be eliminated if the delay for
+      	task[N+1] can be set to infinity.
+
+Long term:
+     * rewrite to daemon + client app that allows users to add
+       	       new commands to the queue at runtime.
