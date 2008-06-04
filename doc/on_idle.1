@@ -1,0 +1,52 @@
+.\"
+.TH ON_IDLE 1 "on_idle 0A" "X Version 11"
+.SH NAME
+on_idle - execute commands after the user hasn't used the keyboard or
+mouse for a certain period of time.
+.SH SYNOPSIS
+.B echo
+<\fItimeout\fP> <\fIcommand\fP> |
+.B on_idle
+.SH DESCRIPTION
+.PP
+.I on_idle
+allows commands to be run at a certain interval after the user last pressed
+a key or moved the mouse within a certain X session.  Potential applications
+include collecting activity data, clearing security-sensitive data when the
+user is away from his keyboard, or scheduling computation-intensive tasks to
+run when there appears to be little need for interactivity.
+.SH USAGE
+.PP
+.I on_idle 
+takes no options, but instead reads intervals and commands from
+the standard input.  All commands are piped through 
+.I sh(1)
+for shell expansion and execution.
+.SH EXAMPLES
+.PP
+.nf
+\fbecho\fP "120 echo \fIuser $USER is slacking off again!\fP | \\
+	\fbwrite\fP boss ttyp0" | \fBon_idle\fP
+.fi
+
+.B on_idle
+.nf
+240 ssh-add -D
+241 xmessage \fI"Your SSH key passwords have been cleared."\fP
+^D
+.fi
+.SH BUGS
+.PP
+.I on_idle
+will execute the commands
+.I every time
+the user is idle for more than the specified period,
+.I regardless
+of whether the previously executed commands have finished.  Avoid
+specifying short intervals or commands that take a long amount of time to complete.
+Alternatively, implement your own locking.
+
+Currently there's no support for executing commands when the user returns after
+being idle.
+.SH AUTHORS
+Michiel Buddingh'
