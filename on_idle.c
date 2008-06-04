@@ -109,7 +109,7 @@ void get_input (unsigned int * tasknr, struct _task ** tasks) {
 			      command[2] = 
 				strndup(line + offset, (unsigned int) length - offset);
 			(*tasks)[*tasknr].command[3] = NULL;
-			(*tasks)[*tasknr].pid = 0;
+			(*tasks)[*tasknr].pid = -2;
 			(*tasknr)++;
 		} else if (d == 0) {
 			fprintf(stderr, "Lines should be of the format <delay> <command>\n");
@@ -188,6 +188,16 @@ int main(int argc, char ** argv) {
 				{
 					int c = next_task - 1;
 					while ((c >= 0) && (tasks[c].delay > last_wakeup)) {
+						if (!(wait4(tasks[c].pid,
+							    NULL,
+							    WNOHANG,
+							    NULL))) {
+							c--;
+							continue;
+						} else {
+							tasks[c].pid = -2;
+						}
+						
 						tasks[c].pid = fork();
 						if (!(tasks[c].pid)) {
 							execvp("sh",
@@ -195,9 +205,9 @@ int main(int argc, char ** argv) {
 						}
 						c--;
 					}
+					last_wakeup = idle;
 				}
 
-				last_wakeup = idle;
 				
 				if (next_task < tasknr) {
 					sleepleft = MAX(MIN(tasks[next_task].delay - idle,

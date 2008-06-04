@@ -37,15 +37,6 @@ for shell expansion and execution.
 .fi
 .SH BUGS
 .PP
-.I on_idle
-will execute the commands
-.I every time
-the user is idle for more than the specified period,
-.I regardless
-of whether the previously executed commands have finished.  Avoid
-specifying short intervals or commands that take a long amount of time to complete.
-Alternatively, implement your own locking.
-
 Currently there's no support for executing commands when the user returns after
 being idle.
 .SH AUTHORS
