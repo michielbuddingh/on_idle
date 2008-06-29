@@ -62,9 +62,7 @@ int search_tasks (const unsigned int ntasks, const struct _task tasks[], unsigne
 	
 	while ((h - l) > 1) {
 		int half = (h + l) / 2;
-		if (tasks[half].delay == delay) {
-			return half + 1;
-		} else if (tasks[half].delay < delay) {
+		if (tasks[half].delay <= delay) {
 			l = half;
 		} else if (tasks[half].delay > delay) {
 			h = half;
