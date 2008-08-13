@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <string.h>
 
 #include <sys/wait.h>
@@ -13,6 +14,13 @@
 #define MIN(a, b) (a > b ? b : a)
 #define MAX(a, b) (a > b ? a : b)
 
+
+void exerror(const char * errmsg) {
+	fprintf(stderr, errmsg);
+	exit(EXIT_FAILURE);
+}
+
+
 int input_line ( unsigned int * len, char ** line ) {
 	unsigned int bufsize;
 	int c;
@@ -20,12 +28,12 @@ int input_line ( unsigned int * len, char ** line ) {
 	*len = 0;
 	*line = malloc(512);
 	assert(*line);
+	bufsize = 512;
 
 	while ((c = getchar())) {
 		if (c == EOF) {
 			if (ferror(stdin)) {
-				free(*line);
-				exit(EXIT_FAILURE);
+				exerror("Error reading from standard input");
 			} else {
 				*(*line + (*len)) = 0;
 				return 0;
@@ -38,7 +46,7 @@ int input_line ( unsigned int * len, char ** line ) {
 				bufsize += 512;
 				if (!(temp = realloc(*line, bufsize))) {
 					free(*line);
-					exit(EXIT_FAILURE);
+					exerror(strerror(errno));
 				}
 				*line = temp;
 			}
@@ -118,7 +126,7 @@ void get_input (unsigned int * tasknr, struct _task ** tasks) {
 		if (*tasknr == taskbuf) {
 			taskbuf += 12;
 			if (!(*tasks = realloc(*tasks, taskbuf * sizeof(** tasks)))) {
-				exit(EXIT_FAILURE);
+				exerror(strerror(errno));
 			}
 			
 		}
@@ -140,19 +148,14 @@ int main(int argc, char ** argv) {
 	d = XOpenDisplay(NULL);
 
 	if (!d) {
-		printf("Could not open display\n");
-		exit(EXIT_FAILURE);
+		exerror("Could not open display\n");
 	}
 
 	{
 		int event_no, voidno;
-
-		if (XScreenSaverQueryExtension(d, &event_no, &voidno)) {
-			printf("Event no: %d\n", event_no);
-		} else {
-			printf("XScreenSaver Extension not available\n");
+		if (!(XScreenSaverQueryExtension(d, &event_no, &voidno))) {
 			XCloseDisplay(d);
-			exit(EXIT_FAILURE);
+			exerror("XScreenSaver Extension not available\n");
 		}
 	}
 
