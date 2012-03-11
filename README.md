@@ -7,4 +7,8 @@ idle.
 
 Lines should look like this:
 
-> 20 Stop slacking off, you lazy bum!
+> 20 echo Stop slacking off, you lazy bum!
+> 40 echo If you don't move the mouse cursor right now ...
+> 41 echo I'm going to delete your ssh keys from memory!
+> 50 echo Last chance!
+> 60 ssh-add -D
