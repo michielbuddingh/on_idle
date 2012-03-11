@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE 700
+#define _BSD_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -53,7 +55,7 @@ int input_line ( unsigned int * len, char ** line ) {
 			*(*line + (*len)++) = (char) c;
 		}
 	}
-	
+
 	*(*line + (*len)) = 0;
 
 	return 1;
@@ -62,12 +64,12 @@ int input_line ( unsigned int * len, char ** line ) {
 struct _task {
 	unsigned int delay;
 	pid_t pid;
-	const char * command[4];
+	char * command[4];
 };
 
-int search_tasks (const unsigned int ntasks, const struct _task tasks[], unsigned int delay) {
+int search_tasks (const int ntasks, const struct _task tasks[], unsigned long int delay) {
 	int l = -1, h = ntasks;
-	
+
 	while ((h - l) > 1) {
 		int half = (h + l) / 2;
 		if (tasks[half].delay <= delay) {
@@ -83,7 +85,7 @@ int search_tasks (const unsigned int ntasks, const struct _task tasks[], unsigne
 int compare_tasks(const void * a, const void * b) {
 	const struct _task * aa = (const struct _task *) a;
 	const struct _task * bb = (const struct _task *) b;
-	
+
 	if (aa->delay > bb->delay) {
 		return 1;
 	} else if (aa->delay < bb->delay) {
@@ -94,9 +96,9 @@ int compare_tasks(const void * a, const void * b) {
 }
 
 void get_input (unsigned int * tasknr, struct _task ** tasks) {
-	
+
 	unsigned int taskbuf = 12;
-	
+
 	*tasknr = 0;
 	* tasks = malloc(10 * sizeof(** tasks));
 	assert(*tasks);
@@ -108,11 +110,11 @@ void get_input (unsigned int * tasknr, struct _task ** tasks) {
 		int offset;
 		int d, c = input_line(&length, &line);
 		if ((d = sscanf(line, "%d %n", &delay, &offset)) > 0) {
-			(*tasks)[*tasknr].delay = abs(delay);
-			(*tasks)[*tasknr].command[0] = "sh";
-		        (*tasks)[*tasknr].command[1] = "-c";
+			(*tasks)[*tasknr].delay = (unsigned int) abs(delay);
+			(*tasks)[*tasknr].command[0] = strdup("sh");
+		        (*tasks)[*tasknr].command[1] = strdup("-c");
 			(*tasks)[*tasknr].
-			      command[2] = 
+			      command[2] =
 				strndup(line + offset, (unsigned int) length - offset);
 			(*tasks)[*tasknr].command[3] = NULL;
 			(*tasks)[*tasknr].pid = -2;
@@ -128,7 +130,7 @@ void get_input (unsigned int * tasknr, struct _task ** tasks) {
 			if (!(*tasks = realloc(*tasks, taskbuf * sizeof(** tasks)))) {
 				exerror(strerror(errno));
 			}
-			
+
 		}
 	}
 
@@ -137,14 +139,13 @@ void get_input (unsigned int * tasknr, struct _task ** tasks) {
 
 
 int main(int argc, char ** argv) {
-	int sleeptime = 5;
 	XScreenSaverInfo * xsi;
 	Display *d;
 
 	(void) argc;
 	(void) argv;
 
-	
+
 	d = XOpenDisplay(NULL);
 
 	if (!d) {
@@ -162,21 +163,22 @@ int main(int argc, char ** argv) {
 	{
 		struct _task * tasks;
 		unsigned int tasknr;
-		
+
 		get_input(&tasknr, &tasks);
 
 		if (tasknr == 0) {
 			XCloseDisplay(d);
 			exit(EXIT_SUCCESS);
 		}
-	
+
 		assert(xsi = XScreenSaverAllocInfo());
-	
+
 		{
-			unsigned int last_wakeup = 0;
-			int sleepleft = tasks[0].delay;
+			unsigned long int last_wakeup = 0;
+			long int sleepleft = tasks[0].delay;
 			do {
-				unsigned int idle, next_task;
+				unsigned long int idle;
+				unsigned int next_task;
 				sleep((unsigned int) sleepleft);
 				XScreenSaverQueryInfo(d, DefaultRootWindow(d), xsi);
 
@@ -198,7 +200,7 @@ int main(int argc, char ** argv) {
 						} else {
 							tasks[c].pid = -2;
 						}
-						
+
 						tasks[c].pid = fork();
 						if (!(tasks[c].pid)) {
 							execvp("sh",
@@ -209,7 +211,7 @@ int main(int argc, char ** argv) {
 					last_wakeup = idle;
 				}
 
-				
+
 				if (next_task < tasknr) {
 					sleepleft = MAX(MIN(tasks[next_task].delay - idle,
 							    tasks[0].delay), 1);
@@ -219,7 +221,7 @@ int main(int argc, char ** argv) {
 			} while (sleepleft > 0);
 		}
 	}
-		
+
 
 	XFree(xsi);
 
