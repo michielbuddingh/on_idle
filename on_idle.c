@@ -1,3 +1,6 @@
+// Copyright 2008-2013, Michiel Buddingh, All rights reserved.
+// Use of this code is governed by version 2.0 or later of the Apache
+// License, available at http://www.apache.org/licenses/LICENSE-2.0
 #define _XOPEN_SOURCE 700
 #define _BSD_SOURCE
 #include <stdio.h>
