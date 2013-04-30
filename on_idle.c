@@ -20,14 +20,13 @@
 #define MIN(a, b) (a > b ? b : a)
 #define MAX(a, b) (a > b ? a : b)
 
-
-void exerror(const char * errmsg) {
+static void exerror(const char * errmsg) {
 	fprintf(stderr, errmsg);
 	exit(EXIT_FAILURE);
 }
 
 
-int input_line ( unsigned int * len, char ** line ) {
+static int input_line ( unsigned int * len, char ** line ) {
 	unsigned int bufsize;
 	int c;
 
@@ -71,7 +70,7 @@ struct _task {
 	char * command[4];
 };
 
-int search_tasks (const int ntasks, const struct _task tasks[], unsigned long int delay) {
+static int search_tasks (const int ntasks, const struct _task tasks[], unsigned long int delay) {
 	int l = -1, h = ntasks;
 
 	while ((h - l) > 1) {
@@ -86,7 +85,7 @@ int search_tasks (const int ntasks, const struct _task tasks[], unsigned long in
 }
 
 
-int compare_tasks(const void * a, const void * b) {
+static int compare_tasks(const void * a, const void * b) {
 	const struct _task * aa = (const struct _task *) a;
 	const struct _task * bb = (const struct _task *) b;
 
@@ -99,7 +98,7 @@ int compare_tasks(const void * a, const void * b) {
 	}
 }
 
-void get_input (unsigned int * tasknr, struct _task ** tasks) {
+static void get_input (unsigned int * tasknr, struct _task ** tasks) {
 
 	unsigned int taskbuf = 12;
 

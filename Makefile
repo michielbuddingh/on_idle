@@ -4,10 +4,10 @@
 LANGFLAGS=-pedantic -std=c99
 WARNFLAGS=-W -Wall -Wfatal-errors -Wconversion -Wno-sign-conversion -Wstrict-prototypes -Wunreachable-code  -Wwrite-strings -Wpointer-arith -Wbad-function-cast -Wcast-align -Wcast-qual
 CC=gcc
-XCBLIBS=$(shell pkg-config --cflags --libs xcb xcb-screensaver xcb-xprint)
+XCBLIBS=$(shell pkg-config --cflags --libs xcb xcb-screensaver)
 
 on_idle:	on_idle.c
-	$(CC) $(LANGFLAGS) $(WARNFLAGS) $(XCBLIBS) -o on_idle on_idle.c
+	$(CC) $(CFLAGS) $(LANGFLAGS) $(WARNFLAGS) $(XCBLIBS) -o on_idle on_idle.c
 
-clean:	on_idle
-	rm on_idle
+clean:
+	-rm on_idle
