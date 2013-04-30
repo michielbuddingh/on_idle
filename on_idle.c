@@ -126,6 +126,7 @@ void get_input (unsigned int * tasknr, struct _task ** tasks) {
 		} else if (d == 0) {
 			fprintf(stderr, "Lines should be of the format <delay> <command>\n");
 		}
+		free(line);
 		if (!c) {
 			break;
 		}
