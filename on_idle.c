@@ -13,8 +13,9 @@
 
 #include <assert.h>
 
-#include <X11/Xlib.h>
-#include <X11/extensions/scrnsaver.h>
+#include <xcb/xcb.h>
+#include <xcb/xprint.h>
+#include <xcb/screensaver.h>
 
 #define MIN(a, b) (a > b ? b : a)
 #define MAX(a, b) (a > b ? a : b)
@@ -140,28 +141,27 @@ void get_input (unsigned int * tasknr, struct _task ** tasks) {
 	qsort(*tasks, *tasknr, sizeof(** tasks), &(compare_tasks));
 }
 
-
 int main(int argc, char ** argv) {
-	XScreenSaverInfo * xsi;
-	Display *d;
-
 	(void) argc;
 	(void) argv;
 
+	xcb_connection_t * xc = xcb_connect (NULL, NULL);
 
-	d = XOpenDisplay(NULL);
-
-	if (!d) {
+	if (xcb_connection_has_error(xc) > 0) {
 		exerror("Could not open display\n");
 	}
 
 	{
-		int event_no, voidno;
-		if (!(XScreenSaverQueryExtension(d, &event_no, &voidno))) {
-			XCloseDisplay(d);
+		xcb_query_extension_reply_t * extension_reply =
+			xcb_get_extension_data (xc, &xcb_screensaver_id);
+
+		if (!extension_reply->present) {
+			xcb_disconnect (xc);
 			exerror("XScreenSaver Extension not available\n");
 		}
 	}
+
+	xcb_drawable_t root = xcb_setup_roots_iterator (xcb_get_setup (xc)).data->root;
 
 	{
 		struct _task * tasks;
@@ -170,11 +170,9 @@ int main(int argc, char ** argv) {
 		get_input(&tasknr, &tasks);
 
 		if (tasknr == 0) {
-			XCloseDisplay(d);
+			xcb_disconnect(xc);
 			exit(EXIT_SUCCESS);
 		}
-
-		assert(xsi = XScreenSaverAllocInfo());
 
 		{
 			unsigned long int last_wakeup = 0;
@@ -183,9 +181,17 @@ int main(int argc, char ** argv) {
 				unsigned long int idle;
 				unsigned int next_task;
 				sleep((unsigned int) sleepleft);
-				XScreenSaverQueryInfo(d, DefaultRootWindow(d), xsi);
+				xcb_screensaver_query_info_reply_t * info =
+					xcb_screensaver_query_info_reply (
+						xc,
+						xcb_screensaver_query_info_unchecked(
+							xc,
+							root),
+						NULL);
 
-				idle = xsi->idle / 1000;
+				idle = info->ms_since_user_input / 1000;
+				free(info);
+
 				next_task = search_tasks(tasknr, tasks, idle);
 
 				if (last_wakeup > idle) {
@@ -225,9 +231,6 @@ int main(int argc, char ** argv) {
 		}
 	}
 
-
-	XFree(xsi);
-
-	XCloseDisplay(d);
+	xcb_disconnect (xc);
 	return EXIT_SUCCESS;
 }
