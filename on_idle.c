@@ -1,8 +1,7 @@
-// Copyright 2008-2013, Michiel Buddingh, All rights reserved.
+// Copyright 2008-2017, Michiel Buddingh, All rights reserved.
 // Use of this code is governed by version 2.0 or later of the Apache
 // License, available at http://www.apache.org/licenses/LICENSE-2.0
-#define _XOPEN_SOURCE 700
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,7 +20,7 @@
 #define MAX(a, b) (a > b ? a : b)
 
 static void exerror(const char * errmsg) {
-	fprintf(stderr, errmsg);
+	fprintf(stderr, "%s\n", errmsg);
 	exit(EXIT_FAILURE);
 }
 
@@ -152,7 +151,7 @@ int main(int argc, char ** argv) {
 	}
 
 	{
-		xcb_query_extension_reply_t * extension_reply =
+		xcb_query_extension_reply_t const * extension_reply =
 			xcb_get_extension_data (xc, &xcb_screensaver_id);
 
 		if (!extension_reply->present) {
